@@ -1,0 +1,20 @@
+name: PPT screenshots (temporary)
+on:
+  push:
+    branches: [ppt-screenshots]
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx vite build
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: |
+          npx vite preview --port 4173 --strictPort &
+          npx wait-on -t 60000 http://localhost:4173 || sleep 10
+          node scripts/ppt-shots.mjs
+      - uses: actions/upload-artifact@v4
+        with: { name: shots, path: shots/ }
